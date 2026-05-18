@@ -34,6 +34,11 @@ npm start
 docker build -t ghcr.io/samclement/swhurl-platform-typescript-app-example:latest .
 ```
 
+GitHub Actions builds and pushes images to GHCR on pushes to `main`:
+
+- `ghcr.io/samclement/swhurl-platform-typescript-app-example:<full-commit-sha>`
+- `ghcr.io/samclement/swhurl-platform-typescript-app-example:<12-char-commit-sha>`
+
 ## Platform Runtime Contract
 
 The Kubernetes manifests set:
@@ -66,4 +71,3 @@ To make this app Flux-managed by `swhurl-platform`, add a Flux Kustomization in 
 
 - `./k8s/overlays/staging`
 - `./k8s/overlays/prod`
-
