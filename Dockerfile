@@ -1,6 +1,7 @@
 FROM node:24-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
+ARG NPM_CONFIG_LOGLEVEL=warn
 RUN npm ci
 
 FROM deps AS build
@@ -11,6 +12,7 @@ RUN npm run build
 FROM node:24-bookworm-slim AS prod-deps
 WORKDIR /app
 COPY package.json package-lock.json ./
+ARG NPM_CONFIG_LOGLEVEL=warn
 RUN npm ci --omit=dev
 
 FROM gcr.io/distroless/nodejs24-debian12:nonroot AS runtime

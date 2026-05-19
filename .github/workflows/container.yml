@@ -13,7 +13,6 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-and-push:
@@ -26,7 +25,7 @@ jobs:
       - name: Set image metadata
         id: meta
         run: |
-          image="${IMAGE_NAME,,}"
+          image="${REGISTRY}/${IMAGE_NAME,,}"
           sha_tag="${GITHUB_SHA}"
           short_sha_tag="${GITHUB_SHA::12}"
           {
@@ -36,26 +35,26 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Login to GHCR
-        uses: redhat-actions/podman-login@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login "${REGISTRY}" --username "${{ github.actor }}" --password-stdin
 
       - name: Build image
-        id: build
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: ${{ steps.meta.outputs.image }}
-          tags: |
-            ${{ steps.meta.outputs.sha_tag }}
-            ${{ steps.meta.outputs.short_sha_tag }}
-          containerfiles: |
-            ./Dockerfile
+        run: |
+          image="${{ steps.meta.outputs.image }}"
+          sha_tag="${{ steps.meta.outputs.sha_tag }}"
+          short_sha_tag="${{ steps.meta.outputs.short_sha_tag }}"
+
+          buildah bud \
+            --format docker \
+            --tls-verify=true \
+            --build-arg NPM_CONFIG_LOGLEVEL=error \
+            -f ./Dockerfile \
+            -t "${image}:${sha_tag}" \
+            .
+          buildah tag "${image}:${sha_tag}" "${image}:${short_sha_tag}"
 
       - name: Push image
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build.outputs.image }}
-          tags: ${{ steps.build.outputs.tags }}
-          registry: ${{ env.REGISTRY }}
+        run: |
+          image="${{ steps.meta.outputs.image }}"
+          podman push "${image}:${{ steps.meta.outputs.sha_tag }}" --tls-verify=true
+          podman push "${image}:${{ steps.meta.outputs.short_sha_tag }}" --tls-verify=true
