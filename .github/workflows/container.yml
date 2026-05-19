@@ -19,6 +19,9 @@ jobs:
     name: Build and push image
     runs-on: ubuntu-latest
     steps:
+      - name: Configure Git defaults
+        run: git config --global init.defaultBranch main
+
       - name: Checkout
         uses: actions/checkout@v6
 
