@@ -13,6 +13,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-and-push:
@@ -20,12 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set image metadata
         id: meta
         run: |
-          image="${REGISTRY}/${IMAGE_NAME,,}"
+          image="${IMAGE_NAME,,}"
           sha_tag="${GITHUB_SHA}"
           short_sha_tag="${GITHUB_SHA::12}"
           {
